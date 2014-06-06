@@ -1,8 +1,17 @@
+/* 
+ * File:   interrupts.h
+ * Author: myrddian
+ *
+ * Created on 6 June 2014, 10:32 AM
+ */
+
+
 #ifndef _HAL_
 #define _HAL_
 
 #include <gpio.h>
 #include <mmio.h>
+#include <interrupts.h>
 
 #define HAL_PARENT 0
 
@@ -34,11 +43,12 @@ typedef struct __reg_device {
 void hal_init();
 void spin(int32_t spin_count);
 uint32_t registerDevice(DeviceHandler *device, uint32_t parent_dev);
-DeviceHandler * getDevice(char name[MAX_DEV_NAME]);
+int32_t getDeviceID(const char name[MAX_DEV_NAME]);
+DeviceHandler * getDevice(const char name[MAX_DEV_NAME]);
 DeviceHandler * getDevice_n(uint32_t alias);
 void prim_mem_cpy(const void *origin , void *target, uint32_t target_size);
-uint32_t prim_str_cmp(char *string_one, char *string_two, uint32_t size);
-uint32_t prim_str_size(char *string, uint32_t max_size);
+uint32_t prim_str_cmp(const char *string_one, const char *string_two, uint32_t size);
+uint32_t prim_str_size(const char *string, uint32_t max_size);
 
 uint32_t DeviceOpen(char name[MAX_DEV_NAME]);
 uint32_t DeviceClose(char name[MAX_DEV_NAME]);

@@ -40,30 +40,42 @@ WARNFLAGS   += -Werror
 ASFLAGS     := $(INCLUDES) $(DEPENDFLAGS) -D__ASSEMBLY__
 CFLAGS      := $(INCLUDES) $(DEPENDFLAGS) $(BASEFLAGS) $(WARNFLAGS)
 CFLAGS      += -std=gnu99 -ggdb
+CUR-DIR := $(shell pwd)
  
 # build rules
 all: kernel.img
  
 include $(wildcard *.d)
 
+libhw.a:
+	$(ARMGNU)-gcc $(CFLAGS) -c hw/uart.c
+	$(ARMGNU)-gcc $(CFLAGS) -c hw/mailbox.asm.s
+	$(ARMGNU)-gcc $(CFLAGS) -c hw/mailbox.c
+	$(ARMGNU)-gcc $(CFLAGS) -c hw/framebuffer.c
+	$(ARMGNU)-ar rvs libhw.a uart.o mailbox.asm.o framebuffer.o mailbox.o
+	cp libhw.a lib
+	
+	
+
+interrupts.o:
+	
 
 rpi.boot.o: 
 	$(ARMGNU)-gcc $(CFLAGS) -c boot/rpi.boot.S
 
-hal.o : 
-	$(ARMGNU)-gcc $(CFLAGS) -c hal/hal.c  hal/drivers.c 
-	
-util.rpi.o:
+libhal.a : 
+	$(ARMGNU)-gcc $(CFLAGS) -c hal/hal.c
+	$(ARMGNU)-gcc $(CFLAGS) -c hal/interrupts.c
 	$(ARMGNU)-gcc $(CFLAGS) -c hal/util.rpi.c
-
-uart.o : 
-	$(ARMGNU)-gcc $(CFLAGS) -c hw/uart.c 	
+	$(ARMGNU)-ar rvs libhal.a hal.o interrupts.o util.rpi.o
+	cp libhal.a lib
 
 main.o:
 	$(ARMGNU)-gcc $(CFLAGS) -c main.c 
  
-kernel.elf: main.o hal.o uart.o util.rpi.o rpi.boot.o
-	$(ARMGNU)-ld rpi.boot.o uart.o hal.o main.o util.rpi.o -Tboot/rpi.link-arm-eabi.ld -o $@  
+kernel.elf: main.o rpi.boot.o  libhw.a libhal.a 
+	$(ARMGNU)-ld --verbose -L$(CUR-DIR)/lib rpi.boot.o main.o -lhal -lhw  -Tboot/rpi.link-arm-eabi.ld -o $@  
+	mv *.o obj
  
 kernel.img: kernel.elf
 	$(ARMGNU)-objcopy kernel.elf -O binary kernel.img
@@ -72,6 +84,7 @@ clean:
 	$(RM) -f $(OBJS) kernel.elf kernel.img
 	$(RM) -f *.d
 	$(RM) -f *.o
+	$(RM) -f *.a
  
 dist-clean: clean
 	$(RM) -f *.d

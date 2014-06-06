@@ -1,6 +1,15 @@
+/* 
+ * File:   interrupts.h
+ * Author: myrddian
+ *
+ * Created on 6 June 2014, 10:32 AM
+ */
+
+
 #include <hal.h>
 #include <uart.h>
 #include "util.h"
+#include <mailbox.h>
 
 void kernel_main(uint32_t r0, uint32_t r1, uint32_t atags) {
     
@@ -13,6 +22,7 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atags) {
     
     hal_init();
     create_uart_device();
+    registerMailBoxDriver();
     
     //DeviceHandler * console = getDevice("UART_DEV");
     DeviceOpen(uart_dev);

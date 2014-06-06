@@ -1,3 +1,11 @@
+/* 
+ * File:   interrupts.h
+ * Author: myrddian
+ *
+ * Created on 6 June 2014, 10:32 AM
+ */
+
+
 #include <stdint.h>
 
 #include <hal.h>
@@ -16,7 +24,7 @@ void prim_mem_cpy(const void *origin , void *target, uint32_t target_size){
     
 }
 
-uint32_t prim_str_size(char *string, uint32_t max_size){
+uint32_t prim_str_size(const char *string, uint32_t max_size){
     
     for(int counter = 0; counter < max_size; counter++){
         if(string[counter]=='\n')
@@ -27,7 +35,7 @@ uint32_t prim_str_size(char *string, uint32_t max_size){
 }
 
 //primitive string compare
-uint32_t prim_str_cmp(char *string_one, char *string_two, uint32_t size) {
+uint32_t prim_str_cmp(const char *string_one, const char *string_two, uint32_t size) {
     //Check if the address is the same
     if(string_one == string_two)
         return 0;
