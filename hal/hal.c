@@ -15,7 +15,7 @@ DeviceHandler devices[MAX_DEV]; ///just a device list.
 int32_t getDeviceID(const char name[MAX_DEV_NAME]){
     
     for(int counter=0; counter < MAX_DEV; ++counter){
-        if(prim_str_cmp(name,devices[counter].name,prim_str_size(name,MAX_DEV_NAME))==0){
+        if(prim_str_cmp(name,devices[counter].name)==0){
             return counter;
         }
     }
@@ -23,8 +23,9 @@ int32_t getDeviceID(const char name[MAX_DEV_NAME]){
     
 }
 
-void hal_init() {
+void hal_init() { 
     int counter;
+    prim_memset_zero(devices,sizeof(DeviceHandler)*MAX_DEV);
     for(counter=0; counter < MAX_DEV; ++counter){
         devices[counter].status = DEV_FREE;
     }
@@ -46,6 +47,7 @@ uint32_t registerDevice(DeviceHandler *device, uint32_t parent_dev){
      prim_mem_cpy(device,&devices[location],sizeof(DeviceHandler));
      devices[location].init(parent_dev);
      devices[location].status = DEV_ALLOC;
+     devices[location].parent_id = parent_dev;
      return location;
 }
 
@@ -53,7 +55,7 @@ uint32_t registerDevice(DeviceHandler *device, uint32_t parent_dev){
 DeviceHandler * getDevice(const char name[MAX_DEV_NAME]){
     
     for(int counter=0; counter < MAX_DEV; ++counter){
-        if(prim_str_cmp(name,devices[counter].name,prim_str_size(name,MAX_DEV_NAME))==0){
+        if(prim_str_cmp(name,devices[counter].name)==0){
             return &devices[counter];
         }
     }

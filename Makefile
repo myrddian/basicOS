@@ -21,8 +21,8 @@ OBJS        += $(patsubst %.c,%.o,$(SOURCES_C))
  
 # Build flags
 DEPENDFLAGS := -MD -MP
-INCLUDES    := -I hal -I hw -I mem -I sched -I shell 
-BASEFLAGS   := -O2 -fpic -pedantic -pedantic-errors -nostdlib
+INCLUDES    := -O0 -I hal -I hw -I mem -I sched -I shell 
+BASEFLAGS   := -fpic -pedantic -pedantic-errors -nostdlib
 BASEFLAGS   += -ffreestanding -fomit-frame-pointer -mcpu=arm1176jzf-s
 WARNFLAGS   := -Wall -Wextra -Wshadow -Wcast-align -Wwrite-strings
 WARNFLAGS   += -Wredundant-decls -Winline
@@ -85,6 +85,8 @@ clean:
 	$(RM) -f *.d
 	$(RM) -f *.o
 	$(RM) -f *.a
+	$(RM) -f obj/*.o
+	$(RM) -f lib/*.a
  
 dist-clean: clean
 	$(RM) -f *.d

@@ -32,7 +32,7 @@ typedef struct __reg_device {
      
        int32_t  status; 
        uint32_t parent_id;
-       char     name[64];
+       const char     *name;
        uint32_t (*init)(uint32_t parent_id);
        uint32_t (*open)(struct __reg_device *this);
        uint32_t (*close)(struct __reg_device *this);
@@ -47,9 +47,9 @@ int32_t getDeviceID(const char name[MAX_DEV_NAME]);
 DeviceHandler * getDevice(const char name[MAX_DEV_NAME]);
 DeviceHandler * getDevice_n(uint32_t alias);
 void prim_mem_cpy(const void *origin , void *target, uint32_t target_size);
-uint32_t prim_str_cmp(const char *string_one, const char *string_two, uint32_t size);
+uint32_t prim_str_cmp(const char *string_one, const char *string_two);
 uint32_t prim_str_size(const char *string, uint32_t max_size);
-
+void prim_memset_zero(void *target, uint32_t size);
 uint32_t DeviceOpen(char name[MAX_DEV_NAME]);
 uint32_t DeviceClose(char name[MAX_DEV_NAME]);
 uint32_t DeviceWrite(char name[MAX_DEV_NAME], uint32_t address, uint32_t size);

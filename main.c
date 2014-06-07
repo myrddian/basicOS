@@ -10,6 +10,7 @@
 #include <uart.h>
 #include "util.h"
 #include <mailbox.h>
+#include <framebuffer.h>
 
 void kernel_main(uint32_t r0, uint32_t r1, uint32_t atags) {
     
@@ -23,6 +24,7 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atags) {
     hal_init();
     create_uart_device();
     registerMailBoxDriver();
+    registerFramebuffer();
     
     //DeviceHandler * console = getDevice("UART_DEV");
     DeviceOpen(uart_dev);

@@ -10,6 +10,7 @@
 #include <uart.h>
 #include "../util.h"
 
+char uart_name[] = "UART_DEV";
 
 void uart_putc(uint8_t byte) {
     // wait for UART to become ready to transmit
@@ -126,7 +127,8 @@ uint32_t uart_init(uint32_t parent_id){
 void create_uart_device(){
     
     DeviceHandler uart_device;
-    prim_mem_cpy("UART_DEV\n",uart_device.name, sizeof(char)*8);
+    //prim_mem_cpy(uart_name,uart_device.name, sizeof(char)*8);
+    uart_device.name = uart_name;
     uart_device.parent_id = HAL_PARENT;
     uart_device.open = &uart_open;
     uart_device.close = &uart_close;

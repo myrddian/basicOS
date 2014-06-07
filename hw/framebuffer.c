@@ -4,16 +4,16 @@
 #include "framebuffer.h"
 #include "../util.h"
 
-const char framebuffer_dev[]="FRAMEBUFFER_DEV\n"; 
+const char framebuffer_dev[]="FRAMEBUFFER_DEV"; 
 
-uint32_t init(uint32_t parent_id){
+uint32_t fb_init(uint32_t parent_id){
     UNUSED(parent_id);
     //We do nothing and return success
     return DEVICE_SUCESS;
     
 }
 
-uint32_t open(struct __reg_device *this){
+uint32_t fb_open(struct __reg_device *this){
     if(this->status==DEV_USE)
        return DEVICE_USE_ERR;
     
@@ -21,7 +21,7 @@ uint32_t open(struct __reg_device *this){
     return DEVICE_SUCESS;
 }
 
-uint32_t close(struct __reg_device *this){
+uint32_t fb_close(struct __reg_device *this){
     if(this->status!=DEV_USE)
         return DEVICE_USE_ERR;
     
@@ -31,7 +31,7 @@ uint32_t close(struct __reg_device *this){
 
 
 //
-uint32_t write(struct __reg_device *this, uint32_t address, uint32_t size){
+uint32_t fb_write(struct __reg_device *this, uint32_t address, uint32_t size){
     UNUSED(this);
     UNUSED(address);
     UNUSED(size);
@@ -40,7 +40,7 @@ uint32_t write(struct __reg_device *this, uint32_t address, uint32_t size){
 
 
 //Fetch the frame buffer and return its address
-uint32_t read(struct __reg_device *this, uint32_t address, uint32_t size){
+uint32_t fb_read(struct __reg_device *this, uint32_t address, uint32_t size){
     //the address contains the FB descriptor
     //the function returns FB address
     UNUSED(size);
@@ -77,13 +77,15 @@ void registerFramebuffer(){
     //Get the mailbox driver interface
     //DeviceHandler *mailbox = getDevice(mbox_name);
     DeviceHandler framebuffer;
-    prim_mem_cpy(framebuffer_dev,framebuffer.name, prim_str_size(framebuffer_dev,MAX_DEV_NAME));
+    prim_memset_zero(&framebuffer, sizeof(DeviceHandler));
+    //prim_mem_cpy(framebuffer_dev,framebuffer.name, prim_str_size(framebuffer_dev,MAX_DEV_NAME));
+    framebuffer.name = framebuffer_dev;
 
-    framebuffer.open = &open;
-    framebuffer.close = &close;
-    framebuffer.init = &init;
-    framebuffer.read = &read;
-    framebuffer.write = &write;
+    framebuffer.open = &fb_open;
+    framebuffer.close = &fb_close;
+    framebuffer.init = &fb_init;
+    framebuffer.read = &fb_read;
+    framebuffer.write = &fb_write;
     
     registerDevice(&framebuffer,getDeviceID(mbox_name));
     
