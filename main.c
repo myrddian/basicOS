@@ -28,7 +28,7 @@ void kernel_main(uint32_t r0, uint32_t r1, uint32_t atags) {
     
     //DeviceHandler * console = getDevice("UART_DEV");
     DeviceOpen(uart_dev);
-    DeviceWrite(uart_dev,*hello_world,sizeof(hello_world));
+    DeviceWrite(uart_dev,(uint32_t)(&hello_world),sizeof(hello_world));
     while(1){
         
     }
