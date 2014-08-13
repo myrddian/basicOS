@@ -14,6 +14,17 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
+
+#ifdef R_PI
+#include "rpi/hal.rpi.h"
+#endif
+
+#ifdef X86
+#include "x86/interrupts.x86.h"
+#include "x86/PIC_IRQ.h"
+#endif
+
+
 #define MAX_SYS_NAME 64
 #define MAX_SYS_CALLS 64
 #define SYS_FREE 0
@@ -30,28 +41,22 @@ extern "C" {
         uint32_t (*handler)(uint32_t r0, uint32_t r1, uint32_t r2);
     }SysCallHandler;
 
-    
-    void interrupt_init();
-    
     void registerSysHandler(SysCallHandler *handle);
+    void interrupt_init();
+
+
+    void enable_hw_interrupts();
+    void disable_hw_interrupts();
+    void hw_interrupt_end();
+
+    void register_timer_interrupt(void (*handler)());
+    void set_hw_timer_frequency(uint32_t frequency);
+    void register_page_fault_hander();
+
+
+
     
-    void registerIRQHandler(uint32_t (*handler)(uint32_t r0, uint32_t r1, uint32_t r3));
-    
-    void registerUndefinedHandler(uint32_t (*handler)(uint32_t r0, uint32_t r1, uint32_t r2));
-    
-    void registerFIQHandler(uint32_t (*handler)(uint32_t r0, uint32_t r1, uint32_t r2));
-    
-    void registerDataAbortHandler(uint32_t (*handler)(uint32_t r0, uint32_t r1, uint32_t r2));
-    
-    void registerPrefetchAbort(uint32_t (*handler)(uint32_t r0, uint32_t r1, uint32_t r2));
-    
-    uint32_t swiHandler(uint32_t r0, uint32_t r1, uint32_t r2);
-    uint32_t IRQHandler(uint32_t r0, uint32_t r1, uint32_t r2);
-    uint32_t UndefineHandler(uint32_t r0, uint32_t r1, uint32_t r2);
-    uint32_t FIQHandler(uint32_t r0, uint32_t r1, uint32_t r2);
-    uint32_t DataAbortHandler(uint32_t r0, uint32_t r1, uint32_t r2);
-    uint32_t PrefetchAbortHandler(uint32_t r0, uint32_t r1, uint32_t r2);
-    extern void enable_irq ( void );   
+
 
 #ifdef	__cplusplus
 }

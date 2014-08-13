@@ -9,7 +9,9 @@
 #ifndef MMIO_H
 #define MMIO_H
 
-#include <mmio.rpi.h>
+#ifdef R_PI
+#include "rpi/mmio.rpi.h"
+#endif
 
 
 #endif

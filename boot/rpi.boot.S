@@ -88,7 +88,7 @@ kernel_start:
         //Set up vectors
        
 
-	ldr	r3, =kernel_main
+	ldr	r3, =entry_point
 	blx	r3
  
 	// halt

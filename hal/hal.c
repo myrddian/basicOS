@@ -8,8 +8,10 @@
 
 #include <stdint.h>
 #include <hal.h>
+#include <util.h>
 
 DeviceHandler devices[MAX_DEV]; ///just a device list.
+
 
 
 int32_t getDeviceID(const char name[MAX_DEV_NAME]){

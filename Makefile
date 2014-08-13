@@ -1,8 +1,13 @@
 # Makefile - build script */
  
 # build environment
-PREFIX ?= /Users/myrddian/arm-cs-tools
-ARMGNU ?= $(PREFIX)/bin/arm-none-eabi
+# PREFIX ?= /Users/myrddian/arm-cs-tools
+# ARMGNU ?= $(PREFIX)/bin/arm-none-eabi
+ARMGNU ?= armv6j-hardfloat-linux-gnueabi
+
+X86GNU ?= gcc
+ARMCPUFLAG := -mcpu=arm1176jzf-s
+X86CPUFLAG := -m32
  
 # source files
 SOURCES_ASM := $(wildcard *.S)
@@ -21,9 +26,9 @@ OBJS        += $(patsubst %.c,%.o,$(SOURCES_C))
  
 # Build flags
 DEPENDFLAGS := -MD -MP
-INCLUDES    := -O0 -I hal -I hw -I mem -I sched -I shell 
-BASEFLAGS   := -fpic -pedantic -pedantic-errors -nostdlib
-BASEFLAGS   += -ffreestanding -fomit-frame-pointer -mcpu=arm1176jzf-s
+INCLUDES    := -O0 -I hal -I hw -I mem -I sched -I shell -I lib
+BASEFLAGS   := -fPIC -DPIC -pedantic -pedantic-errors -nostdlib -shared -Bsymbolic
+BASEFLAGS   += -ffreestanding -fomit-frame-pointer -z defs
 WARNFLAGS   := -Wall -Wextra -Wshadow -Wcast-align -Wwrite-strings
 WARNFLAGS   += -Wredundant-decls -Winline
 WARNFLAGS   += -Wno-attributes -Wno-deprecated-declarations
@@ -41,44 +46,86 @@ ASFLAGS     := $(INCLUDES) $(DEPENDFLAGS) -D__ASSEMBLY__
 CFLAGS      := $(INCLUDES) $(DEPENDFLAGS) $(BASEFLAGS) $(WARNFLAGS)
 CFLAGS      += -std=gnu99 -ggdb
 CUR-DIR := $(shell pwd)
+OBJ_DIR := obj
+	
+ARMCPUFLAG += -DR_PI	
+X86CPUFLAG += -DX86
  
 # build rules
-all: kernel.img
+all: kernel_rpi.img kernel_x86.img
  
 include $(wildcard *.d)
 
-libhw.a:
-	$(ARMGNU)-gcc $(CFLAGS) -c hw/uart.c
-	$(ARMGNU)-gcc $(CFLAGS) -c hw/mailbox.asm.s
-	$(ARMGNU)-gcc $(CFLAGS) -c hw/mailbox.c
-	$(ARMGNU)-gcc $(CFLAGS) -c hw/framebuffer.c
-	$(ARMGNU)-ar rvs libhw.a uart.o mailbox.asm.o framebuffer.o mailbox.o
-	cp libhw.a lib
+
+libhwx86.a:
+	
+
+libosx86.a:
+	$(X86GNU) $(CFLAGS) $(X86CPUFLAG)  -c lib/util.c
+	ar rvs libbosx86.a util.o
+	mv libbosx86.a $(OBJ_DIR)
+	
+libhalx86.a:
+	$(X86GNU) $(CFLAGS) $(X86CPUFLAG)  -c hal/hal.c
+	$(X86GNU) $(CFLAGS) $(X86CPUFLAG)  -c hal/x86/interrupts.c
+	nasm -g -felf  hal/x86/assembler.S
+	ar rvs libhalx86.a hal.o interrupts.o hal/x86/assembler.o
+	mv libhalx86.a $(OBJ_DIR)
+	
+main_x86.o:
+	$(X86GNU) $(CFLAGS) $(X86CPUFLAG)  -c main.c 
+	mv main.o main_x86.o
+	
+boot.x86.o:
+	as boot/boot.x86.S
 	
 	
 
-interrupts.o:
+kernel_x86.elf: main_x86.o libosx86.a libosx86.a libhalx86.a libhwx86.a boot.x86.o
+
+kernel_x86.img: kernel_x86.elf
+	
+
+
+
+
+libhwrpi.a:
+	$(ARMGNU)-gcc $(CFLAGS) $(ARMCPUFLAG)  -c hw/rpi/uart.c 
+	$(ARMGNU)-gcc $(CFLAGS) $(ARMCPUFLAG)  -c hw/rpi/mailbox.asm.s
+	$(ARMGNU)-gcc $(CFLAGS) $(ARMCPUFLAG)  -c hw/rpi/mailbox.c
+	$(ARMGNU)-gcc $(CFLAGS) $(ARMCPUFLAG)  -c hw/rpi/framebuffer.c
+	$(ARMGNU)-ar rvs libhwrpi.a uart.o mailbox.asm.o framebuffer.o mailbox.o
+	mv libhwrpi.a $(OBJ_DIR)
+	
+
+libbosrpi.a:
+	$(ARMGNU)-gcc $(CFLAGS) $(ARMCPUFLAG)  -c lib/util.c
+	$(ARMGNU)-ar rvs libbosrpi.a util.o
+	mv libbosrpi.a $(OBJ_DIR)
 	
 
 rpi.boot.o: 
-	$(ARMGNU)-gcc $(CFLAGS) -c boot/rpi.boot.S
+	$(ARMGNU)-gcc $(CFLAGS) $(ARMCPUFLAG)  -c boot/rpi.boot.S
 
-libhal.a : 
-	$(ARMGNU)-gcc $(CFLAGS) -c hal/hal.c
-	$(ARMGNU)-gcc $(CFLAGS) -c hal/interrupts.c
-	$(ARMGNU)-gcc $(CFLAGS) -c hal/util.rpi.c
-	$(ARMGNU)-ar rvs libhal.a hal.o interrupts.o util.rpi.o
-	cp libhal.a lib
+libhalrpi.a : 
+	$(ARMGNU)-gcc $(CFLAGS) $(ARMCPUFLAG)  -c hal/hal.c
+	$(ARMGNU)-gcc $(CFLAGS) $(ARMCPUFLAG)  -c hal/rpi/interrupts.c
+	$(ARMGNU)-gcc $(CFLAGS) $(ARMCPUFLAG)  -c hal/rpi/drivers.c
+	$(ARMGNU)-gcc $(CFLAGS) $(ARMCPUFLAG)  -c hal/rpi/entry_point.c
+	$(ARMGNU)-ar rvs libhalrpi.a hal.o interrupts.o entry_point.o drivers.o
+	mv libhalrpi.a $(OBJ_DIR)
 
-main.o:
-	$(ARMGNU)-gcc $(CFLAGS) -c main.c 
+main_rpi.o:
+	$(ARMGNU)-gcc $(CFLAGS) $(ARMCPUFLAG)  -c main.c 
+	mv main.o main_rpi.o
  
-kernel.elf: main.o rpi.boot.o  libhw.a libhal.a 
-	$(ARMGNU)-ld --verbose -L$(CUR-DIR)/lib rpi.boot.o main.o -lhal -lhw  -Tboot/rpi.link-arm-eabi.ld -o $@  
+kernel.rpi.elf: main_rpi.o rpi.boot.o  libhwrpi.a libhalrpi.a libbosrpi.a
+	$(ARMGNU)-ld -L$(CUR-DIR)/$(OBJ_DIR) rpi.boot.o main_rpi.o -lhalrpi -lhwrpi -lbosrpi -Tboot/rpi.link-arm-eabi.ld -o $@  
 	mv *.o obj
+	mv *.d debug
  
-kernel.img: kernel.elf
-	$(ARMGNU)-objcopy kernel.elf -O binary kernel.img
+kernel_rpi.img: kernel.rpi.elf
+	$(ARMGNU)-objcopy kernel.rpi.elf -O binary kernel_rpi.img
  
 clean:
 	$(RM) -f $(OBJS) kernel.elf kernel.img
@@ -86,7 +133,8 @@ clean:
 	$(RM) -f *.o
 	$(RM) -f *.a
 	$(RM) -f obj/*.o
-	$(RM) -f lib/*.a
+	$(RM) -f boot/*.o
+	$(RM) -f obj/*.a
  
 dist-clean: clean
 	$(RM) -f *.d
